@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-api
+  labels:
+    app: todo-api
+spec:
+  selector:
+    matchLabels:
+      app: todo-api
+  template:
+    metadata:
+      labels:
+        app: todo-api
+    spec:
+      containers:
+        - name: todo-api
+          image: kevinpena/todo-api:0.0.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PG_CONNECTION_STRING
+              value: postgresql://postgres:secret@todo-pg/postgres
+          ports:
+            - name: http
+              containerPort: 4300
+              protocol: TCP

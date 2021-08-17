@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-pg
+  labels:
+    app: todo-pg
+spec:
+  selector:
+    matchLabels:
+      app: todo-pg
+  template:
+    metadata:
+      labels:
+        app: todo-pg
+    spec:
+      containers:
+        - name: todo-pg
+          image: postgres:13.4
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_PASSWORD
+              value: secret
+          ports:
+            - name: pg
+              containerPort: 5432
+              protocol: TCP
