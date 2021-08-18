@@ -4,9 +4,15 @@ metadata:
   name: todo-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
+  tls:
+  - hosts:
+    - kube-todo.kevinpena.com
+    secretName: todo-tls
   rules:
-  - http:
+  - host: kube-todo.kevinpena.com
+    http:
       paths:
       - path: /api(/|$)(.*)
         pathType: Prefix
