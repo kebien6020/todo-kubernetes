@@ -56,3 +56,15 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Login to kubernetes cluster
+        run: |
+          set -e
+          cert=$(mktemp)
+          cat <<EOF > ${cert}
+          ${{ env.K8S_CERT }}
+          EOF
+          kubectl config set-credentials "${{ env.K8S_USER }}" --token="${{ env.K8S_TOKEN }}" --client-certificate="${cert}" --embed-certs
+          kubectl config set-cluster selfhosted --server="${{ env.K8S_SERVER }}"
+          kubectl config set-context selfhosted --user="${{ env.K8S_USER }}"+ --cluster selfhosted
+          
