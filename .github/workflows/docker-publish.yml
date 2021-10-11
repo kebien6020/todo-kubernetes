@@ -88,8 +88,8 @@ jobs:
           cat <<EOF > ${cert}
           ${certificate_data}
           EOF
-          kubectl config set-credentials "${user}" --token="${token}" --client-certificate="${cert}" --embed-certs
-          kubectl config set-cluster selfhosted --server="${server}"
+          kubectl config set-credentials "${user}" --token="${token}"
+          kubectl config set-cluster selfhosted --server="${server}" --certificate-authority="${cert}" --embed-certs
           kubectl config set-context selfhosted --user="${user}" --cluster selfhosted
           kubectl config use-context selfhosted
       - name: Update deployment
