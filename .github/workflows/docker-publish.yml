@@ -91,6 +91,7 @@ jobs:
           kubectl config set-credentials "${user}" --token="${token}" --client-certificate="${cert}" --embed-certs
           kubectl config set-cluster selfhosted --server="${server}"
           kubectl config set-context selfhosted --user="${user}" --cluster selfhosted
+          kubectl config use-context selfhosted
       - name: Update deployment
         run: kubectl apply -k k8s
           
