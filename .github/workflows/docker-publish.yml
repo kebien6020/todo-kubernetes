@@ -55,41 +55,40 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Login to kubernetes cluster
-        env:
-          token: ${{ secrets.K8S_TOKEN }}
-          user: admin
-          server: "https://104.131.32.105:16443"
-          certificate_data: |
-            -----BEGIN CERTIFICATE-----
-            MIIDDzCCAfegAwIBAgIUNw3RjySvzP+g1zBQrQA5tCPrGhAwDQYJKoZIhvcNAQEL
-            BQAwFzEVMBMGA1UEAwwMMTAuMTUyLjE4My4xMB4XDTIxMTAxMDAyMDcwN1oXDTMx
-            MTAwODAyMDcwN1owFzEVMBMGA1UEAwwMMTAuMTUyLjE4My4xMIIBIjANBgkqhkiG
-            9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyx3cFb3EXa6W2etSd/3Ye1AxFj4KwUxkKoeN
-            yco6aelg9UbkSX1tTuVrHJBVaAkYJ1XLYpMaFqHTFjEDbQdEXs9EoEW0UI1ZNgBo
-            AN7JwrRV4j+F6Xp1zZF3PokGByg01pjvnfljvrGn//gTC7wM5h60egVGZWfIas4j
-            VDkGQnhIzgZMzLj7IEhILQsW5yNMMzL1GGyV17fsH4HqxnueHNtR+4fk7fcxV3Oc
-            DPhwUqozq5p7FZHbZv7Sa63MIZs+VWPJduR5Hw0Ax1DDw+loIB4jN9PoY21A2hh7
-            N2+fnjHq9SdOkxlIJIvg2o8frnc5DJonBAzqq2g0KWaP3ei+WQIDAQABo1MwUTAd
-            BgNVHQ4EFgQU2OOdbk0k/d+20aU2UFXMQKKRaLMwHwYDVR0jBBgwFoAU2OOdbk0k
-            /d+20aU2UFXMQKKRaLMwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOC
-            AQEApQLRsMyqVAwZPhPGFi3XpGdXkBZIcXLKv0dpmPr0RaCLx46H5WZLTtGhQyM+
-            JOwaeNbKqgM+DQvYqPewTgfKOc5kGKMWZkhIz1o0p3tJUD30aafbd2syPG0oAoYp
-            2WD8cJAuFy+rVK9JumQ3E6KUiU+yfVgk79L2Eqmm5ybp4uqS0N+phJyzDVxf758j
-            9r9kyM3qev4Vu4aBJMxX8rAgsjHttX3KRrb/C0tukLHvOqP5gn2Ro4c48F/zb9k0
-            ygM6qu6aZXUUtCSk0hhOrPx5zGnxDrQGOhjt/ZeXb/huCyKcW7om+LxmK6d0v4Ar
-            fkwWQ1HqWUBRjb0awUKlcHO20w==
-            -----END CERTIFICATE-----
-        run: |
-          set -e
-          cert=$(mktemp)
-          cat <<EOF > ${cert}
-          ${certificate_data}
-          EOF
-          kubectl config set-credentials "${user}" --token="${token}"
-          kubectl config set-cluster selfhosted --server="${server}" --certificate-authority="${cert}" --embed-certs
-          kubectl config set-context selfhosted --user="${user}" --cluster selfhosted
-          kubectl config use-context selfhosted
-      - name: Update deployment
-        run: kubectl apply -k k8s
-          
+      # - name: Login to kubernetes cluster
+      #   env:
+      #     token: ${{ secrets.K8S_TOKEN }}
+      #     user: admin
+      #     server: "https://104.131.32.105:16443"
+      #     certificate_data: |
+      #       -----BEGIN CERTIFICATE-----
+      #       MIIDDzCCAfegAwIBAgIUNw3RjySvzP+g1zBQrQA5tCPrGhAwDQYJKoZIhvcNAQEL
+      #       BQAwFzEVMBMGA1UEAwwMMTAuMTUyLjE4My4xMB4XDTIxMTAxMDAyMDcwN1oXDTMx
+      #       MTAwODAyMDcwN1owFzEVMBMGA1UEAwwMMTAuMTUyLjE4My4xMIIBIjANBgkqhkiG
+      #       9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyx3cFb3EXa6W2etSd/3Ye1AxFj4KwUxkKoeN
+      #       yco6aelg9UbkSX1tTuVrHJBVaAkYJ1XLYpMaFqHTFjEDbQdEXs9EoEW0UI1ZNgBo
+      #       AN7JwrRV4j+F6Xp1zZF3PokGByg01pjvnfljvrGn//gTC7wM5h60egVGZWfIas4j
+      #       VDkGQnhIzgZMzLj7IEhILQsW5yNMMzL1GGyV17fsH4HqxnueHNtR+4fk7fcxV3Oc
+      #       DPhwUqozq5p7FZHbZv7Sa63MIZs+VWPJduR5Hw0Ax1DDw+loIB4jN9PoY21A2hh7
+      #       N2+fnjHq9SdOkxlIJIvg2o8frnc5DJonBAzqq2g0KWaP3ei+WQIDAQABo1MwUTAd
+      #       BgNVHQ4EFgQU2OOdbk0k/d+20aU2UFXMQKKRaLMwHwYDVR0jBBgwFoAU2OOdbk0k
+      #       /d+20aU2UFXMQKKRaLMwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOC
+      #       AQEApQLRsMyqVAwZPhPGFi3XpGdXkBZIcXLKv0dpmPr0RaCLx46H5WZLTtGhQyM+
+      #       JOwaeNbKqgM+DQvYqPewTgfKOc5kGKMWZkhIz1o0p3tJUD30aafbd2syPG0oAoYp
+      #       2WD8cJAuFy+rVK9JumQ3E6KUiU+yfVgk79L2Eqmm5ybp4uqS0N+phJyzDVxf758j
+      #       9r9kyM3qev4Vu4aBJMxX8rAgsjHttX3KRrb/C0tukLHvOqP5gn2Ro4c48F/zb9k0
+      #       ygM6qu6aZXUUtCSk0hhOrPx5zGnxDrQGOhjt/ZeXb/huCyKcW7om+LxmK6d0v4Ar
+      #       fkwWQ1HqWUBRjb0awUKlcHO20w==
+      #       -----END CERTIFICATE-----
+      #   run: |
+      #     set -e
+      #     cert=$(mktemp)
+      #     cat <<EOF > ${cert}
+      #     ${certificate_data}
+      #     EOF
+      #     kubectl config set-credentials "${user}" --token="${token}"
+      #     kubectl config set-cluster selfhosted --server="${server}" --certificate-authority="${cert}" --embed-certs
+      #     kubectl config set-context selfhosted --user="${user}" --cluster selfhosted
+      #     kubectl config use-context selfhosted
+      # - name: Update deployment
+      #   run: kubectl apply -k k8s
