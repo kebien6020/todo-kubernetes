@@ -1,4 +1,4 @@
-import express from 'express'
+import express, {Router} from 'express'
 import knex from 'knex'
 import cors from 'cors'
 
@@ -11,7 +11,10 @@ const db = knex({
 app.use(express.json())
 app.use(cors())
 
-app.get('/', (_req, res) => {
+const api = Router()
+app.use('/api', api)
+
+api.get('/', (_req, res) => {
   res.json({
     endopints: [
       '/v1/todos'
@@ -19,12 +22,12 @@ app.get('/', (_req, res) => {
   })
 })
 
-app.get('/v1/todos', async (_req, res) => {
+api.get('/v1/todos', async (_req, res) => {
   const todos = await db('todos')
   res.json(todos)
 })
 
-app.post('/v1/todos', async (req, res) => {
+api.post('/v1/todos', async (req, res) => {
   const data = req.body
   await db('todos').insert(data)
   res.json({})
