@@ -3,30 +3,21 @@ kind: Ingress
 metadata:
   name: todo-ingress
   namespace: todo
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    # cert-manager.io/issuer: letsencrypt-prod
 spec:
-  # tls:
-  # - hosts:
-  #   - kube-todo.kevinpena.com
-  #   secretName: todo-tls
   rules:
   - http:
       paths:
-      - path: /api(/|$)(.*)
+      - path: /api
         pathType: Prefix
         backend:
           service:
             name: todo-api
             port:
               name: http
-      - path: /()(.*)
+      - path: /
         pathType: Prefix
         backend:
           service:
             name: todo-front
             port:
               name: http
-    # host: kube-todo.kevinpena.com

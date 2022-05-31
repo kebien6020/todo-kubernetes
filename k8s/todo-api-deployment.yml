@@ -17,6 +17,7 @@ spec:
       containers:
         - name: todo-api
           image: ghcr.io/kebien6020/todo-kubernetes:master
+          imagePullPolicy: Always
           env:
             - name: PG_CONNECTION_STRING
               value: postgresql://postgres:secret@todo-pg/postgres
