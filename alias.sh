@@ -9,11 +9,23 @@
 # - AWS credentials with a ton of permissions
 
 alias k='kubectl'
-alias tf='terraform -chdir=./tf'
+
+tf-select() {
+  local opts="cluster app"
+  local proj=$(\grep -o "\b$1\w*\b" <<<"$opts")
+  if [ "$(wc -w <<<"$proj")" -ne 1 ]; then
+    >&2 echo "Valid options are \"$opts\""
+    return 1
+  fi
+
+  set -x
+  alias tf="terraform -chdir=./tf/$proj"
+  { set +x; } 2>/dev/null
+}
 
 box_id() {
   local num="$1"
-  tf output -raw "kube${num}-id"
+  terraform -chdir=./tf/cluster output -raw "kube${num}-id"
 }
 
 ssm() {
@@ -46,7 +58,7 @@ ssm-command() {
 }
 
 ssm-kubeconf() {
-  local ip=$(tf output -raw "kube1-ip")
+  local ip=$(terraform -chdir=./tf/cluster output -raw "kube1-ip")
   local conf=$(ssm-command "kubectl config view --raw")
   if [ -z "$conf" ]; then
     >&2 echo "Empty conf $conf"
@@ -70,6 +82,8 @@ ssm-kubeconf() {
   kubectl config set-context todo-kubernetes \
     --cluster todo-kubernetes \
     --user todo-kubernetes
+
+  kubectl config get-contexts
 }
 
 kuse() {
