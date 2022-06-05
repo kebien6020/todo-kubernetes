@@ -1,14 +1,14 @@
 terraform {
   backend "s3" {
     bucket = "kev-tf-state"
-    key    = "cluster-1/state.json"
+    key    = "todo-kubernetes/state.json"
     region = "us-east-1"
   }
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.0"
+      version = "~> 4.0"
     }
   }
 }
@@ -17,10 +17,9 @@ provider "aws" {
   region = "us-east-1"
   default_tags {
     tags = {
-      project = "cluster-1"
+      project = "todo-kubernetes"
     }
   }
 }
 
-provider "random" {
-}
+provider "random" {}
