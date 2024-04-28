@@ -53,6 +53,8 @@ jobs:
           tags: ${{ steps.api_meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: 'linux/amd64,linux/arm64'
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Generate docker metadata
         id: api_front
@@ -69,3 +71,5 @@ jobs:
           tags: ${{ steps.api_front.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: 'linux/amd64,linux/arm64'
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
