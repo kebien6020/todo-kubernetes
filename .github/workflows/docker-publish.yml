@@ -11,9 +11,6 @@ on:
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-
 
 jobs:
   build:
@@ -33,69 +30,42 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      - name: Generate docker metadata
+        id: api_meta
+        uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/todo-api
+          tags: type=sha,prefix=g,format=short # e.g. g2a542195
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
       - name: Build and push API image
         uses: docker/build-push-action@v5
         with:
           context: todo-api
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.api_meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: 'linux/amd64,linux/arm64'
 
-      # - name: Login to kubernetes cluster
-      #   env:
-      #     token: ${{ secrets.K8S_TOKEN }}
-      #     user: admin
-      #     server: "https://104.131.32.105:16443"
-      #     certificate_data: |
-      #       -----BEGIN CERTIFICATE-----
-      #       MIIDDzCCAfegAwIBAgIUNw3RjySvzP+g1zBQrQA5tCPrGhAwDQYJKoZIhvcNAQEL
-      #       BQAwFzEVMBMGA1UEAwwMMTAuMTUyLjE4My4xMB4XDTIxMTAxMDAyMDcwN1oXDTMx
-      #       MTAwODAyMDcwN1owFzEVMBMGA1UEAwwMMTAuMTUyLjE4My4xMIIBIjANBgkqhkiG
-      #       9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyx3cFb3EXa6W2etSd/3Ye1AxFj4KwUxkKoeN
-      #       yco6aelg9UbkSX1tTuVrHJBVaAkYJ1XLYpMaFqHTFjEDbQdEXs9EoEW0UI1ZNgBo
-      #       AN7JwrRV4j+F6Xp1zZF3PokGByg01pjvnfljvrGn//gTC7wM5h60egVGZWfIas4j
-      #       VDkGQnhIzgZMzLj7IEhILQsW5yNMMzL1GGyV17fsH4HqxnueHNtR+4fk7fcxV3Oc
-      #       DPhwUqozq5p7FZHbZv7Sa63MIZs+VWPJduR5Hw0Ax1DDw+loIB4jN9PoY21A2hh7
-      #       N2+fnjHq9SdOkxlIJIvg2o8frnc5DJonBAzqq2g0KWaP3ei+WQIDAQABo1MwUTAd
-      #       BgNVHQ4EFgQU2OOdbk0k/d+20aU2UFXMQKKRaLMwHwYDVR0jBBgwFoAU2OOdbk0k
-      #       /d+20aU2UFXMQKKRaLMwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOC
-      #       AQEApQLRsMyqVAwZPhPGFi3XpGdXkBZIcXLKv0dpmPr0RaCLx46H5WZLTtGhQyM+
-      #       JOwaeNbKqgM+DQvYqPewTgfKOc5kGKMWZkhIz1o0p3tJUD30aafbd2syPG0oAoYp
-      #       2WD8cJAuFy+rVK9JumQ3E6KUiU+yfVgk79L2Eqmm5ybp4uqS0N+phJyzDVxf758j
-      #       9r9kyM3qev4Vu4aBJMxX8rAgsjHttX3KRrb/C0tukLHvOqP5gn2Ro4c48F/zb9k0
-      #       ygM6qu6aZXUUtCSk0hhOrPx5zGnxDrQGOhjt/ZeXb/huCyKcW7om+LxmK6d0v4Ar
-      #       fkwWQ1HqWUBRjb0awUKlcHO20w==
-      #       -----END CERTIFICATE-----
-      #   run: |
-      #     set -e
-      #     cert=$(mktemp)
-      #     cat <<EOF > ${cert}
-      #     ${certificate_data}
-      #     EOF
-      #     kubectl config set-credentials "${user}" --token="${token}"
-      #     kubectl config set-cluster selfhosted --server="${server}" --certificate-authority="${cert}" --embed-certs
-      #     kubectl config set-context selfhosted --user="${user}" --cluster selfhosted
-      #     kubectl config use-context selfhosted
-      # - name: Update deployment
-      #   run: kubectl apply -k k8s
+      - name: Generate docker metadata
+        id: api_front
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/todo-front
+          tags: type=sha,prefix=g,format=short # e.g. g2a542195
+
+      - name: Build and push front image
+        uses: docker/build-push-action@v5
+        with:
+          context: todo-front
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.api_front.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: 'linux/amd64,linux/arm64'
