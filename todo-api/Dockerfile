@@ -5,7 +5,7 @@ RUN apk add --no-cache dumb-init
 
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=./node_modules,sharing=locked \
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
     npm install --omit=dev --package-lock-only
 COPY src src
 
