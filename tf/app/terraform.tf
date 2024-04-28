@@ -21,5 +21,3 @@ provider "aws" {
     }
   }
 }
-
-provider "random" {}

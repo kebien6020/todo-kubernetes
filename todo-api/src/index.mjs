@@ -1,12 +1,10 @@
 import express, {Router} from 'express'
-import knex from 'knex'
 import cors from 'cors'
+import { DynamoDBClient, PutItemCommand, QueryCommand, ScanCommand } from '@aws-sdk/client-dynamodb'
+import * as uuid from 'uuid'
 
 const app = express()
-const db = knex({
-  client: 'pg',
-  connection: process.env.PG_CONNECTION_STRING,
-})
+const db = new DynamoDBClient({})
 
 app.use(express.json())
 app.use(cors())
@@ -17,34 +15,62 @@ app.use('/api', api)
 api.get('/', (_req, res) => {
   res.json({
     endopints: [
-      '/v1/todos'
+      '/v1/users',
+      '/v1/todos/:username',
     ],
   })
 })
 
-api.get('/v1/todos', async (_req, res) => {
-  const todos = await db('todos')
+const cleanItem = it => {
+  const entries = Object.entries(it)
+  const mod = entries.map(([k, o]) => [k, Object.values(o)?.[0]])
+  return Object.fromEntries(mod)
+}
+
+api.get('/v1/users', async (_req, res) => {
+  const { Items } = await db.send(new ScanCommand({
+    TableName: 'todo-kubernetes_users',
+  }))
+
+  const users = Items.map(cleanItem)
+
+  res.json(users)
+})
+
+api.get('/v1/todos/:username', async (req, res) => {
+  const username = req.params.username
+  const done = req.query.done
+
+  const { Items } = await db.send(new QueryCommand({
+    TableName: 'todo-kubernetes_todos',
+    KeyConditionExpression: 'username = :username',
+    ...(done === undefined ? {} : {FilterExpression: 'done = :done'}),
+    ExpressionAttributeValues: {
+      ':username': {S: username},
+      ...(done === undefined ? {} : {':done': {BOOL: done === 'true'}}),
+    },
+  }))
+
+  const todos = Items.map(cleanItem)
+
   res.json(todos)
 })
 
-api.post('/v1/todos', async (req, res) => {
-  const data = req.body
-  await db('todos').insert(data)
+api.post('/v1/todos/:username', async (req, res) => {
+  const username = req.params.username
+  const {text, done = false} = req.body
+
+  await db.send(new PutItemCommand({
+    TableName: 'todo-kubernetes_todos',
+    Item: {
+      username: {S: username},
+      id: {S: uuid.v4()},
+      done: {BOOL: done},
+      text: {S: text},
+    },
+  }))
+
   res.json({})
 })
 
 app.listen(4300)
-
-const setup = async () => {
-  const todosCreated = await db.schema.hasTable('todos')
-  if (!todosCreated) {
-    console.log('Todos table does not exist, creating...')
-    await db.schema.createTable('todos', t => {
-      t.increments('id').primary()
-      t.text('text')
-      t.boolean('done')
-    })
-  }
-}
-
-setup()
